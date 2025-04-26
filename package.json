@@ -1,17 +1,15 @@
-
 {
   "$schema": "http://json.schemastore.org/package",
   "name": "school-erp-backend",
   "version": "1.0.0",
   "description": "Feature-rich School ERP System Backend",
-  "main": "dist/app.js",
+  "main": "app.js",
+  "type": "module",
   "scripts": {
-    "start": "node dist/app.js",
-    "dev": "nodemon src/app.ts",
-    "build": "tsc",
-    "lint": "eslint . --ext .ts",
-    "test": "jest", 
-    "type": "module"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "lint": "eslint . --ext .js",
+    "test": "jest"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -26,23 +24,10 @@
     "validator": "^13.11.0"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
     "@types/jest": "^29.5.11",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/morgan": "^1.9.9",
-    "@types/multer": "^1.4.11",
-    "@types/node": "^20.11.7",
-    "@types/validator": "^13.11.8",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
-    "@typescript-eslint/parser": "^6.19.1",
     "eslint": "^8.56.0",
     "jest": "^29.7.0",
-    "nodemon": "^3.0.3",
-    "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "nodemon": "^3.0.3"
   },
   "engines": {
     "node": ">=18.0.0"
