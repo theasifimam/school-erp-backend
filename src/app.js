@@ -8,12 +8,14 @@ import dotenv from "dotenv";
 
 // Import routes
 import authRoutes from "./routes/auth.routes.js";
-// import studentRoutes from './routes/student.routes';
-// import teacherRoutes from './routes/teacher.routes';
+import admissionRoutes from "./routes/admission.routes.js";
+import studentRoutes from "./routes/student.routes.js";
+import facultyRoutes from "./routes/faculty.routes.js";
 // import classRoutes from './routes/class.routes';
 // import subjectRoutes from './routes/subject.routes';
 // import attendanceRoutes from './routes/attendance.routes';
 import { env } from "./configs/env.js";
+import cookieParser from "cookie-parser";
 // import examRoutes from './routes/exam.routes';
 // import feeRoutes from './routes/fee.routes';
 // import timetableRoutes from './routes/timetable.routes';
@@ -32,13 +34,14 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true, // This allows cookies to be sent
+    methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 app.use(morgan("dev"));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -50,8 +53,9 @@ mongoose
 
 // API Routes
 app.use("/api/auth", authRoutes);
-// app.use('/api/students', studentRoutes);
-// app.use('/api/teachers', teacherRoutes);
+app.use("/api/admission", admissionRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/faculty", facultyRoutes);
 // app.use('/api/classes', classRoutes);
 // app.use('/api/subjects', subjectRoutes);
 // app.use('/api/attendance', attendanceRoutes);
@@ -64,18 +68,18 @@ app.use("/api/auth", authRoutes);
 // app.use('/api/reports', reportRoutes);
 
 // Error handling middleware
-app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    status: "error",
-    statusCode,
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
-  });
-});
+// app.use((err, req, res, next) => {
+//   const statusCode = err.statusCode || 500;
+//   res.status(statusCode).json({
+//     status: "error",
+//     statusCode,
+//     message: err.message,
+//     stack: process.env.NODE_ENV === "production" ? "🥞" : err.stack,
+//   });
+// });
 
-// Start server
-const PORT = env.PORT || 5000;
+// // Start server
+const PORT = env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);
 });

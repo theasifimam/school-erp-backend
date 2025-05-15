@@ -1,20 +1,13 @@
 // File: src/controllers/auth.controller.ts
 
+import { env } from "../configs/env.js";
 import User from "../models/User.model.js";
 // import jwt from 'jsonwebtoken';
-
-export const testAPI = (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "API is working",
-  });
-};
 
 // Register user
 export const register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
-    console.log(username, email, password, role, ">>>>>>>>>>>>>>>>>>>>>>>>>");
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -50,12 +43,12 @@ export const register = async (req, res) => {
   }
 };
 
-// Login user
+// Login controller
 export const login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validate username & password
+    // Validate input
     if (!username || !password) {
       return res.status(400).json({
         status: "error",
@@ -63,23 +56,13 @@ export const login = async (req, res) => {
       });
     }
 
-    // Check for user
+    // Find user
     const user = await User.findOne({
       username,
       isActive: true,
     }).select("+password");
 
-    if (!user) {
-      return res.status(401).json({
-        status: "error",
-        message: "Invalid credentials",
-      });
-    }
-
-    // Check if password matches
-    const isMatch = await user.matchPassword(password);
-
-    if (!isMatch) {
+    if (!user || !(await user.matchPassword(password))) {
       return res.status(401).json({
         status: "error",
         message: "Invalid credentials",
@@ -90,6 +73,7 @@ export const login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
+    // Send token response
     sendTokenResponse(user, 200, res);
   } catch (error) {
     res.status(500).json({
@@ -129,26 +113,32 @@ export const logout = async (req, res) => {
   });
 };
 
-// Helper function to get token from model, create cookie and send response
+// Token response handler
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
 
-  const jwtCookieExpire = process.env.JWT_COOKIE_EXPIRE
-    ? parseInt(process.env.JWT_COOKIE_EXPIRE)
+  const jwtCookieExpire = env.JWT_COOKIE_EXPIRE
+    ? parseInt(env.JWT_COOKIE_EXPIRE)
     : 7;
 
   const options = {
     expires: new Date(Date.now() + jwtCookieExpire * 24 * 60 * 60 * 1000),
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
+    sameSite: env.NODE_ENV === "production" ? "none" : "lax",
   };
 
+  res.status(statusCode);
   res
-    .status(statusCode)
-    .cookie("token", token, options)
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict", // or 'lax' for development
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    })
     .json({
       status: "success",
-      token,
+      token, // Only for non-HTTP-only usage if needed
       user: {
         id: user._id,
         username: user.username,

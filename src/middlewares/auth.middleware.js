@@ -3,21 +3,30 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { env } from "../configs/env.js";
 
+/**
+ * Middleware to check if user is admin
+ */
+export const isAdmin = (req, res, next) => {
+  // Check if user exists and has admin role
+  if (req.user && req.user.role === "admin") {
+    next();
+  } else {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied. Admin privileges required.",
+    });
+  }
+};
+
 // Protect routes
 export const protect = async (req, res, next) => {
   let token;
 
-  // Check if auth header exists and starts with Bearer
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
-  }
+  // 1) Get token from cookie
+  token = req.cookies?.token;
 
-  // Make sure token exists
+  console.log(token, "----------------------");
+
   if (!token) {
     return res.status(401).json({
       status: "error",
@@ -26,12 +35,11 @@ export const protect = async (req, res, next) => {
   }
 
   try {
-    // Verify token
+    // 2) Verify token
     const decoded = jwt.verify(token, env.JWT_SECRET);
 
-    // Check if user still exists
+    // 3) Check if user still exists
     const user = await User.findById(decoded.id);
-
     if (!user) {
       return res.status(401).json({
         status: "error",
@@ -39,7 +47,7 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // Check if user is active
+    // 4) Check if user is active
     if (!user.isActive) {
       return res.status(401).json({
         status: "error",
@@ -47,9 +55,16 @@ export const protect = async (req, res, next) => {
       });
     }
 
+    // 5) Grant access
     req.user = user;
     next();
   } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        status: "error",
+        message: "Session expired. Please login again",
+      });
+    }
     return res.status(401).json({
       status: "error",
       message: "Not authorized to access this route",
