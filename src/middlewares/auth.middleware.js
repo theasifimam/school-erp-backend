@@ -25,8 +25,6 @@ export const protect = async (req, res, next) => {
   // 1) Get token from cookie
   token = req.cookies?.token;
 
-  console.log(token, "----------------------");
-
   if (!token) {
     return res.status(401).json({
       status: "error",

@@ -6,13 +6,19 @@ import mongoose from "mongoose";
 // Get all students
 export const getAllStudents = async (req, res) => {
   try {
-    const { class: classId, section, academicYear, active } = req.query;
+    const { class: classId, section, academicYear, active, name } = req.query;
     const filter = {};
 
+    if (name) {
+      filter.$or = [
+        { firstName: { $regex: name, $options: "i" } },
+        { lastName: { $regex: name, $options: "i" } },
+      ];
+    }
     if (classId) filter.class = classId;
     if (section) filter.section = section;
     if (academicYear) filter.academicYear = academicYear;
-    if (active !== undefined) filter.isActive = active === "true";
+    // if (active !== undefined) filter.isActive = active === "true";
 
     const students = await Student.find(filter)
       // .populate("user", "username email")
@@ -20,6 +26,8 @@ export const getAllStudents = async (req, res) => {
       // .populate("section", "name")
       // .populate("transportRoute", "name")
       .sort({ admissionNo: 1 });
+
+    console.log(students);
 
     res.status(200).json({
       status: "success",

@@ -29,7 +29,7 @@ const UserSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "teacher", "student", "parent"],
+      enum: ["admin", "faculty", "student", "parent"],
       default: "student",
     },
     resetPasswordToken: String,
